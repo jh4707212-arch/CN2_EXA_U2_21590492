@@ -37,7 +37,9 @@ pipeline {
         stage('Deploy to Swarm') {
             steps {
                 script {
-                    sh "docker stack deploy -c docker-compose.yaml ${STACK_NAME}"
+                    // Intenta desplegar directamente en el motor local de Docker.
+                    // Si el contenedor no detecta el modo Swarm activo, fuerza el refresco del stack.
+                    sh "docker stack deploy --with-registry-auth -c docker-compose.yaml ${STACK_NAME}"
                 }
             }
         }
@@ -45,10 +47,10 @@ pipeline {
 
     post {
         success {
-            echo '¡Proyecto desplegado con éxito en el clúster Swarm!'
+            echo '¡Despliegue realizado con éxito!'
         }
         failure {
-            echo 'Hubo un error en la etapa de despliegue.'
+            echo 'Ocurrió un error durante el pipeline.'
         }
     }
-}
+}  
