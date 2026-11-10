@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "quesito/crud_estudiantes"
         DOCKER_CREDENTIALS_ID = "dockerhub-credentials" 
+        REMOTE_HOST = "juan@45.55.64.106"
         STACK_NAME = "stack_proyecto"
     }
 
@@ -37,9 +38,11 @@ pipeline {
         stage('Deploy to Swarm') {
             steps {
                 script {
-                    // Intenta desplegar directamente en el motor local de Docker.
-                    // Si el contenedor no detecta el modo Swarm activo, fuerza el refresco del stack.
-                    sh "docker stack deploy --with-registry-auth -c docker-compose.yaml ${STACK_NAME}"
+                    // Crea la carpeta en el host y transfiere el compose actualizado
+                    sh "ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} 'mkdir -p /home/juan/crud'"
+                    sh "scp -o StrictHostKeyChecking=no docker-compose.yaml ${REMOTE_HOST}:/home/juan/crud/docker-compose.yaml"
+                    // Executa el despliegue desde el shell del Manager
+                    sh "ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} 'docker stack deploy -c /home/juan/crud/docker-compose.yaml ${STACK_NAME}'"
                 }
             }
         }
@@ -47,10 +50,10 @@ pipeline {
 
     post {
         success {
-            echo '¡Despliegue realizado con éxito!'
+            echo '¡Proyecto desplegado con éxito en el clúster Swarm!'
         }
         failure {
-            echo 'Ocurrió un error durante el pipeline.'
+            echo 'Ocurrió un error durante la ejecución del pipeline.'
         }
     }
-}  
+}   
