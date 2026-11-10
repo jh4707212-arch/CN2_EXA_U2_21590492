@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  crud_estudiantes:
+    image: quesito/crud_estudiantes:latest
+    ports:
+      - "5010:5000"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure  
